@@ -8,7 +8,7 @@ import ChannelCard from '../components/ChannelCard';
 // 1. Mengimpor Video Player yang baru saja kita buat
 import VideoPlayer from '../components/VideoPlayer';
 
-const DUMMY_M3U_URL = 'https://iptv-org.github.io/iptv/countries/id.m3u';
+const DUMMY_M3U_URL = 'https://raw.githubusercontent.com/amanhnb88/AdiTV/main/streams/playlist_super.m3u';
 
 const LiveScreen = () => {
   const { channels, setChannels, isLoading, setLoading, favorites, toggleFavorite, loadFavorites, addLog } = useAppStore();
