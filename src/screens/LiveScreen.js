@@ -1,26 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TextInput, Modal } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import useAppStore from '../store/useAppStore';
 import { parseM3U } from '../utils/m3uParser';
 import ChannelCard from '../components/ChannelCard';
 
-// URL M3U Publik untuk uji coba (Channel TV Indonesia)
+// 1. Mengimpor Video Player yang baru saja kita buat
+import VideoPlayer from '../components/VideoPlayer';
+
 const DUMMY_M3U_URL = 'https://iptv-org.github.io/iptv/countries/id.m3u';
 
 const LiveScreen = () => {
-  // Mengambil data dan fungsi dari "Otak" (Zustand Store)
   const { channels, setChannels, isLoading, setLoading, favorites, toggleFavorite, loadFavorites, addLog } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fungsi untuk mengunduh dan membedah file M3U
+  // 2. Membuat "ingatan" (state) untuk menyimpan channel mana yang sedang ditonton
+  const [activeChannel, setActiveChannel] = useState(null);
+
   const loadPlaylist = async () => {
     setLoading(true);
     try {
       const response = await fetch(DUMMY_M3U_URL);
       const text = await response.text();
-      
-      // Memasukkan teks M3U ke mesin parser kita
       const parsedData = parseM3U(text);
       setChannels(parsedData.channels);
     } catch (error) {
@@ -30,15 +31,13 @@ const LiveScreen = () => {
     }
   };
 
-  // Dijalankan pertama kali saat halaman dibuka
   useEffect(() => {
-    loadFavorites(); // Muat daftar favorit dari memori HP
+    loadFavorites();
     if (channels.length === 0) {
       loadPlaylist();
     }
   }, []);
 
-  // Fitur Pencarian: Menyaring channel berdasarkan teks yang diketik
   const filteredChannels = channels.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -50,7 +49,6 @@ const LiveScreen = () => {
         <Text style={styles.subtitle}>{filteredChannels.length} Saluran Ditemukan</Text>
       </View>
 
-      {/* Kotak Pencarian */}
       <View style={styles.searchContainer}>
         <TextInput 
           style={styles.searchInput}
@@ -61,14 +59,12 @@ const LiveScreen = () => {
         />
       </View>
 
-      {/* Jika sedang loading, tampilkan animasi berputar */}
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#a855f7" />
           <Text style={styles.loadingText}>Memuat Siaran...</Text>
         </View>
       ) : (
-        /* Mesin FlashList Anti-Lag untuk merender daftar channel */
         <View style={{ flex: 1 }}>
           <FlashList
             data={filteredChannels}
@@ -77,14 +73,32 @@ const LiveScreen = () => {
                 channel={item}
                 isFavorite={favorites.includes(item.id)}
                 onToggleFavorite={() => toggleFavorite(item.id)}
-                onPress={() => alert('Nanti kita arahkan ke Video Player: ' + item.name)}
+                // 3. Saat ditekan, masukkan data channel ini ke state activeChannel
+                onPress={() => setActiveChannel(item)}
               />
             )}
-            estimatedItemSize={85} // Estimasi tinggi kartu agar memori efisien
+            estimatedItemSize={85}
             contentContainerStyle={styles.listPadding}
           />
         </View>
       )}
+
+      {/* 4. Lapisan Modal (Layar Penuh) untuk Pemutar Video */}
+      <Modal
+        visible={activeChannel !== null} // Hanya muncul jika ada channel yang dipilih
+        animationType="slide" // Muncul dengan animasi geser dari bawah
+        transparent={false}
+        onRequestClose={() => setActiveChannel(null)} // Tutup video saat tombol "Back" HP ditekan
+      >
+        {/* Pastikan activeChannel tidak kosong sebelum merender VideoPlayer */}
+        {activeChannel && (
+          <VideoPlayer 
+            channel={activeChannel}
+            onClose={() => setActiveChannel(null)} // Tutup video saat tombol Silang (X) ditekan
+          />
+        )}
+      </Modal>
+
     </View>
   );
 };
