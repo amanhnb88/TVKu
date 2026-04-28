@@ -17,8 +17,8 @@ jobs:
       - name: ⚙️ Menyiapkan Node.js (Dengan Cache NPM)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm' # Ini membuat npm install jauh lebih cepat
+          node-version: '20' # Mesin sudah di-upgrade ke versi 20
+          cache: 'npm'
 
       - name: ☕ Menyiapkan Java
         uses: actions/setup-java@v3
@@ -37,7 +37,6 @@ jobs:
 
       - name: 🚀 Merakit APK (Mode Ngebut)
         working-directory: android
-        # Kita tambahkan --parallel dan configuration-cache sesuai artikel yang kamu baca!
         run: ./gradlew assembleRelease --parallel -Porg.gradle.configuration-cache=true
 
       - name: 📤 Mengunggah APK
