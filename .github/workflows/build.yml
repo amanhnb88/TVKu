@@ -1,6 +1,5 @@
 name: Build Android APK
 
-# Dijalankan saat ada kode baru di cabang main, atau dijalankan manual
 on:
   push:
     branches:
@@ -15,10 +14,11 @@ jobs:
       - name: 📥 Mengambil Kode
         uses: actions/checkout@v4
 
-      - name: ⚙️ Menyiapkan Node.js
+      - name: ⚙️ Menyiapkan Node.js (Dengan Cache NPM)
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm' # Ini membuat npm install jauh lebih cepat
 
       - name: ☕ Menyiapkan Java
         uses: actions/setup-java@v3
@@ -26,15 +26,19 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: ⚡ Menyiapkan Cache Gradle (Boster Kecepatan Android)
+        uses: gradle/actions/setup-gradle@v3
+
       - name: 📦 Menginstal Dependencies
         run: npm install
 
       - name: 🏗️ Prebuild Expo ke Android Asli
         run: npx expo prebuild --platform android
 
-      - name: 🚀 Merakit APK
+      - name: 🚀 Merakit APK (Mode Ngebut)
         working-directory: android
-        run: ./gradlew assembleRelease
+        # Kita tambahkan --parallel dan configuration-cache sesuai artikel yang kamu baca!
+        run: ./gradlew assembleRelease --parallel -Porg.gradle.configuration-cache=true
 
       - name: 📤 Mengunggah APK
         uses: actions/upload-artifact@v4
