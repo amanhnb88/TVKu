@@ -30,7 +30,7 @@ jobs:
         run: npm install
 
       - name: 🏗️ Prebuild Expo ke Android Asli
-        run: npx expo prebuild --platform android --no-interactive
+        run: npx expo prebuild --platform android
 
       - name: 🚀 Merakit APK
         working-directory: android
